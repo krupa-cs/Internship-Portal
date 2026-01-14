@@ -1,19 +1,24 @@
 // server.js
-const authRoutes = require('./routes/auth');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+const authRoutes = require('./routes/auth');
 const offersRoutes = require('./routes/offers');
 const applicationsRoutes = require('./routes/applications');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// ✅ CORS — FIXED (ALLOW VITE FRONTEND)
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
-app.use(cors({ origin: process.env.CLIENT_URL })); // Allow frontend to connect
-app.use(express.json()); // Allow server to read JSON
+// Middleware
+app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);

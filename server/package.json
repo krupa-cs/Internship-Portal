@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Christ Recruiter Portal",
   "main": "server.js",
-"scripts": {
-  "start": "node server.js",
-  "dev": "nodemon server.js",
-  "build": "npm install && npx prisma generate" 
-},
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "npm install && npx prisma generate"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
