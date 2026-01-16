@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "/api", // ✅ REQUIRED FOR SAME-REPO VERCEL
+  baseURL: "https://internship-portal-4yld.vercel.app",
   withCredentials: true,
 });
 

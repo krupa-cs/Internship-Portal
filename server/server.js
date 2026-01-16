@@ -9,41 +9,39 @@ const applicationsRoutes = require("./routes/applications");
 
 const app = express();
 
-/* ================= PRISMA (Vercel-safe) ================= */
-let prisma;
-if (!global.prisma) {
-  global.prisma = new PrismaClient();
-}
-prisma = global.prisma;
+const prisma = new PrismaClient();
 
-/* ================= CORS ================= */
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://internship-portal-eta.vercel.app",
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "*", // IMPORTANT
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
 
-/* ================= MIDDLEWARE ================= */
 app.use(express.json());
 
-/* ================= ROUTES ================= */
+app.get("/", (req, res) => res.json({ message: "API is running" }));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/offers", offersRoutes);
 app.use("/api/applications", applicationsRoutes);
 
-/* ================= HEALTH CHECK ================= */
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "Backend running 🚀" });
-});
-
-/* ================= EXPORT FOR VERCEL ================= */
-module.exports = app;
-
-/* ================= LOCAL DEV ONLY ================= */
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
+
+module.exports = app;
