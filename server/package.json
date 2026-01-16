@@ -1,16 +1,13 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Christ Recruiter Portal",
+  "description": "Christ Recruiter Portal Backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "npm install && npx prisma generate"
+    "start": "node server.js",
+    "postinstall": "prisma generate"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
