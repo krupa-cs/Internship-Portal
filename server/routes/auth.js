@@ -8,6 +8,9 @@ router.post('/signup', authController.signup);
 // Verify OTP
 router.post('/verify-otp', authController.verifyOTP);
 
+// Resend OTP
+router.post('/resend-otp', authController.resendOtp);
+
 // Login
 router.post('/login', authController.login);
 

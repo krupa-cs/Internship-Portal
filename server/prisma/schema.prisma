@@ -7,80 +7,117 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model InternshipOffer {
-  id              String   @id @default(uuid())
-  company_name    String
-  sector          String
-  address         String
-  contact_info    String
-  email           String
-  hr_contact      String
-  title           String
-  description     String
-  required_skills String
-  duration        String
-  work_mode       String
-  location        String
-  application_date DateTime
-  joining_date    DateTime
-  completion_date DateTime
-  remuneration    String
-  stipend         String
+  id                   String        @id @default(uuid())
+  company_name         String
+  sector               String
+  address              String
+  contact_info         String
+  email                String
+  hr_contact           String
+  title                String
+  description          String
+  required_skills      String
+  duration             String
+  work_mode            String
+  location             String
+  application_date     DateTime
+  joining_date         DateTime
+  completion_date      DateTime
+  remuneration         String
+  stipend              String
   eligible_for_credits Boolean
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+  recruiterId          String
   
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  // Workflow
+  status                 String   @default("pending_faculty") // pending_faculty, pending_admin, approved, rejected
+  faculty_approval_status String   @default("pending")
+  admin_approval_status  String   @default("pending")
+  faculty_approved_at    DateTime?
+  admin_approved_at      DateTime?
+  rejection_reason       String?
 
-  // RELATIONS
-  applications    Application[]
-  
-  // FIX IS HERE 
-  recruiterId     String
-  recruiter       User     @relation(fields: [recruiterId], references: [id])
+  applications         Application[]
+  recruiter            User          @relation(fields: [recruiterId], references: [id])
 
   @@map("internship_offers")
 }
 
 model Application {
-  id              String   @id @default(uuid())
-  student_name    String
-  email           String
-  phone           String
-  course          String
-  department      String
-  year            String
-  gpa             Decimal
-  resume_url      String
-  cover_letter    String   @db.Text
-  status          String   @default("pending")
-  created_at      DateTime @default(now())
-  offer_id        String
-  offer           InternshipOffer @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+  id               String          @id @default(uuid())
+  student_name     String
+  email            String
+  phone            String
+  course           String
+  department       String
+  year             String
+  gpa              Decimal
+  resume_url       String
+  cover_letter     String
+  status           String          @default("pending") // pending, shortlisted, rejected, hired
+  status_faculty   String          @default("pending")
+  status_admin     String          @default("pending")
+  is_rejected      Boolean         @default(false)
+  created_at       DateTime        @default(now())
+  offer_id         String
+  offer            InternshipOffer @relation(fields: [offer_id], references: [id], onDelete: Cascade)
+
+  student          User?           @relation("student_applications", fields: [student_id], references: [id])
+  student_id       String?
+
   @@map("applications")
 }
 
 model User {
-  id             String   @id @default(uuid())
-  name           String   // Recruiter Name
-  email          String   @unique
-  password       String
-  role           String   @default("recruiter")
-  
-  // New Company Fields
-  company_name   String?
-  company_website String?
-  industry       String?
-  company_size   String?
-  location       String?
-  phone          String?
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  password        String
 
-  // Auth fields
-  otp            String?
-  otp_expiry     DateTime?
-  is_verified    Boolean  @default(false)
-  created_at     DateTime @default(now())
+  // 🔐 RBAC
+  role            String   @default("recruiter")
+  department      String?  // Faculty only (CSE, ECE, etc.)
+
+  // 🛡️ Security & Verification
+  otp                 String?
+  otp_expiry          DateTime?
+  otp_attempts        Int      @default(0)
+  otp_resend_attempts Int      @default(0)
+  otp_cooldown_until  DateTime?
+  is_verified         Boolean  @default(false)
+  accountStatus       String   @default("active") // active | suspended | pending_approval
+  lastLoginAt         DateTime?
+
+  // 🏢 Company Details
+  company_name    String?
+  company_size    String?
+  company_website String?
+  industry        String?
+  location        String?
+  phone           String?
+  trustScore      Int      @default(0)
+
+  created_at      DateTime @default(now())
+
   posted_offers   InternshipOffer[]
+  applications    Application[]   @relation("student_applications")
+  audit_logs      AuditLog[]
 
   @@map("users")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  user_id     String
+  action      String // e.g., 'login', 'create_offer', 'approve_offer'
+  target_id   String?  // ID of the object that was changed
+  target_type String?  // Type of the object (e.g., 'Offer', 'User')
+  details     Json?
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
 }
